@@ -64,6 +64,29 @@ fn is_smaller_than(p1: Pancake, p2: Pancake) -> bool {
     }
 }
 
+
+fn drop_pancake(state: &mut State, state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: [i8; 2]) {
+    let selected_pancake =  state_array[player_coord[1] as usize][(player_coord[0]) as usize];
+    let mut place = 1;
+    for i in 1..(player_coord[0] + 1) {
+        match state_array[player_coord[1] as usize][(player_coord[0] - i) as usize] {
+            Pancake::None => place = i,
+            p => {
+                if is_smaller_than(selected_pancake, p) {
+                    place = i;
+                    println!("place {}", place);
+                    break;
+                } else {
+                    return;
+                }
+            },
+        }
+    }
+    println!("place2 {}", place);
+    update_pancake_location(state_array, [player_coord[0] - place, player_coord[1]], player_coord);
+    *state = State::Standard;
+}
+
 fn draw_selected() {
     print!("->")
 }
@@ -107,7 +130,6 @@ fn process_standard_keypresses(event: KeyEvent, state: &mut State,
                 state: KeyEventState::NONE
             } => {
                 select(state_array, *player_coord); 
-                update_coord(player_coord,[1, 0]); 
                 *state = State::Select; 
             },
             _ => (),
@@ -143,7 +165,7 @@ fn process_select_keypresses(event: KeyEvent, state: &mut State,
                 modifiers: event::KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
-            } =>  (),
+            } => drop_pancake(state, state_array, *player_coord),
             _ => (),
         }
 }
@@ -190,7 +212,7 @@ fn main() {
 
 fn select(state: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: [i8; 2]) {
     match state[player_coord[1] as usize][player_coord[0] as usize] {
-        Pancake::None => (println!("this is none")),
+        Pancake::None => (),
         pancake => {
             if player_coord[0] + 1 > NUM_PLATES {
                 return;
@@ -198,18 +220,16 @@ fn select(state: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usi
             if is_smaller_than(pancake, state[(player_coord[1]) as usize][(player_coord[0] + 1) as usize]) {
                 state[player_coord[1] as usize][player_coord[0] as usize] = Pancake::None;
                 state[player_coord[1] as usize][player_coord[0] as usize + 1] = pancake;
-            } else {
-                println!("failure");
             }
         }
     }
 }
 
-fn update_pancake_location(state: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], 
+fn update_pancake_location(state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], 
 new_coord: [i8; 2], old_coord: [i8; 2]) {
-    let pankcake = state[old_coord[1] as usize][old_coord[0] as usize];
-    state[new_coord[1] as usize][new_coord[0] as usize] = pankcake;
-    state[old_coord[1] as usize][old_coord[0] as usize] = Pancake::None;
+    let pankcake = state_array[old_coord[1] as usize][old_coord[0] as usize];
+    state_array[new_coord[1] as usize][new_coord[0] as usize] = pankcake;
+    state_array[old_coord[1] as usize][old_coord[0] as usize] = Pancake::None;
 }
 
 fn update_coord(player_coord: &mut [i8; 2], new_coord: [i8; 2]) {
