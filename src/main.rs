@@ -109,25 +109,33 @@ fn process_standard_keypresses(event: KeyEvent, state: &mut State,
                 modifiers: event::KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
-            } => update_coord(player_coord, [1, 0]),
+            } => _ = update_coord(player_coord, [1, 0]),
             KeyEvent {
                 code: KeyCode::Left,
                 modifiers: event::KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
-            } => update_coord(player_coord,[0, -1]),
+            } => {
+                if update_coord(player_coord, [0, -1]) {
+                    snap_to_pancake(*state_array, player_coord,[-1, 0])
+                }
+            },
             KeyEvent {
                 code: KeyCode::Down,
                 modifiers: event::KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
-            } => update_coord(player_coord,[-1, 0]),
+            } => _ = update_coord(player_coord,[-1, 0]),
             KeyEvent {
                 code: KeyCode::Right,
                 modifiers: event::KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
-            } => update_coord(player_coord,[0, 1]),
+            } => {
+                if update_coord(player_coord, [0, 1]) {
+                    snap_to_pancake(*state_array, player_coord,[-1, 0])
+                }
+            },
             KeyEvent {
                 code: KeyCode::Enter,
                 modifiers: event::KeyModifiers::NONE,
@@ -150,12 +158,13 @@ fn process_select_keypresses(event: KeyEvent, state: &mut State,
             KeyEvent {
                 code: KeyCode::Left,
                 modifiers: event::KeyModifiers::NONE,
-                kind: KeyEventKind::Press,
+                kind: KeyEventKind::Release,
                 state: KeyEventState::NONE
             } => {
                 let old_coord = *player_coord;
-                update_coord(player_coord, [0, -1]); 
-                update_pancake_location(state_array, *player_coord, old_coord);
+                if update_coord(player_coord, [0, -1]) {
+                    update_pancake_location(state_array, *player_coord, old_coord);
+                }
             },
             KeyEvent {
                 code: KeyCode::Right,
@@ -164,15 +173,20 @@ fn process_select_keypresses(event: KeyEvent, state: &mut State,
                 state: KeyEventState::NONE
             } => {
                 let old_coord = *player_coord; 
-                update_coord(player_coord, [0, 1]);
-                update_pancake_location(state_array, *player_coord, old_coord);
+                if update_coord(player_coord, [0, 1]) {
+                    update_pancake_location(state_array, *player_coord, old_coord);
+
+                }
             },
             KeyEvent {
                 code: KeyCode::Enter,
                 modifiers: event::KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
-            } => drop_pancake(state, state_array, player_coord),
+            } => {
+                drop_pancake(state, state_array, player_coord);
+                snap_to_pancake(*state_array, player_coord, *player_coord);
+            },
             _ => (),
         }
 }
@@ -254,18 +268,24 @@ fn set_coord(player_coord: &mut [i8; 2], new_coord: [i8; 2]) {
     player_coord[1] = temp[1];
 }
 
-fn update_coord(player_coord: &mut [i8; 2], new_coord: [i8; 2]) {
+fn snap_to_pancake(state_array: [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2], new_coord: [i8; 2]) {
+    while update_coord(player_coord, new_coord) && !is_at_pancake(state_array, *player_coord) { () }
+}
+
+fn update_coord(player_coord: &mut [i8; 2], new_coord: [i8; 2]) -> bool {
     let mut temp = *player_coord;
     temp[0] = temp[0] + new_coord[0];
     temp[1] = temp[1] + new_coord[1];
-    if temp[0] < 0 || temp[0] > (NUM_PANCAKES + 1) {
-        temp[0] = player_coord[0];
+    if temp[0] < 0 || temp[0] >= (NUM_PANCAKES + 1) {
+        return false;
     }
-    if temp[1] < 0 || temp[1] > (NUM_PLATES) {
-        temp[1] = player_coord[1];
+    if temp[1] < 0 || temp[1] >= NUM_PLATES {
+        return false;
     }
+    println!("{}", temp[0]);
     player_coord[0] = temp[0];
     player_coord[1] = temp[1];
+    true
 }
 
 fn clear_screen() {
