@@ -217,67 +217,6 @@ fn initialize(state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLA
     *player_coord = [0,0];
 }
 
-fn main() {
-    // clear_screen();
-    // print!("Hello!");
-    // if let Err(error) = io::stdout().flush() {
-    //     panic!("{}", error);
-    // }
-    // thread::sleep(time::Duration::from_millis(2000));
-    let _cleanup = Cleanup;
-    terminal::enable_raw_mode().expect("Could not turn on Raw mode");
-    let mut state = State::Menu;
-    let mut state_array = [[Pancake::None; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize];
-    let mut player_coord: [i8; 2] = [0, 0];
-    loop {
-        if let Event::Key(event) = event::read().expect("Failed to read line") {
-            match state {
-                State::Menu => {
-                    print_welcome();
-                    match event {
-                        KeyEvent {
-                            code: KeyCode::Esc,
-                            modifiers: event::KeyModifiers::NONE,
-                            kind: KeyEventKind::Press,
-                            state: KeyEventState::NONE
-                        } => {
-                            print_exit();
-                            break;
-                        },
-                        KeyEvent {
-                            code: KeyCode::Enter,
-                            modifiers: event::KeyModifiers::NONE,
-                            kind: KeyEventKind::Press,
-                            state: KeyEventState::NONE
-                        } => {
-                            initialize(&mut state_array, &mut player_coord);
-                            state = State::Standard;
-                        },
-                        _ => {}
-                    }
-                    clear_screen();
-                }
-                State::Standard => {
-                    if event.code == KeyCode::Esc {
-                        state = State::Menu;
-                    } else {
-                        process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                        print_screen(state_array, player_coord);
-                    }
-                }, 
-                State::Select => {
-                    if event.code == KeyCode::Esc {
-                        state = State::Menu;
-                    } else {
-                        process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                        print_screen(state_array, player_coord);
-                    }
-                }
-            };
-        }
-    }
-}
-
 fn select(state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2]) -> bool{
     match state_array[player_coord[1] as usize][player_coord[0] as usize] {
         Pancake::None => false,
@@ -394,4 +333,65 @@ fn tablecloth() -> String {
         tablecloth.push_str("▄▀ ")
     }
     tablecloth
+}
+
+fn main() {
+    // clear_screen();
+    // print!("Hello!");
+    // if let Err(error) = io::stdout().flush() {
+    //     panic!("{}", error);
+    // }
+    // thread::sleep(time::Duration::from_millis(2000));
+    let _cleanup = Cleanup;
+    terminal::enable_raw_mode().expect("Could not turn on Raw mode");
+    let mut state = State::Menu;
+    let mut state_array = [[Pancake::None; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize];
+    let mut player_coord: [i8; 2] = [0, 0];
+    loop {
+        if let Event::Key(event) = event::read().expect("Failed to read line") {
+            match state {
+                State::Menu => {
+                    print_welcome();
+                    match event {
+                        KeyEvent {
+                            code: KeyCode::Esc,
+                            modifiers: event::KeyModifiers::NONE,
+                            kind: KeyEventKind::Press,
+                            state: KeyEventState::NONE
+                        } => {
+                            print_exit();
+                            break;
+                        },
+                        KeyEvent {
+                            code: KeyCode::Enter,
+                            modifiers: event::KeyModifiers::NONE,
+                            kind: KeyEventKind::Press,
+                            state: KeyEventState::NONE
+                        } => {
+                            initialize(&mut state_array, &mut player_coord);
+                            state = State::Standard;
+                        },
+                        _ => {}
+                    }
+                    clear_screen();
+                }
+                State::Standard => {
+                    if event.code == KeyCode::Esc {
+                        state = State::Menu;
+                    } else {
+                        process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
+                        print_screen(state_array, player_coord);
+                    }
+                }, 
+                State::Select => {
+                    if event.code == KeyCode::Esc {
+                        state = State::Menu;
+                    } else {
+                        process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
+                        print_screen(state_array, player_coord);
+                    }
+                }
+            };
+        }
+    }
 }
