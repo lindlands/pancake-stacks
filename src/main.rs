@@ -1,8 +1,8 @@
 use std::fmt;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState}; 
 use crossterm::{event, terminal};
+mod view;
 
-const WIDTH_OF_SECTION: usize = 20;
 const NUM_PLATES: i8 = 3;
 const NUM_PANCAKES: i8 = 3;
 const INIT_PLATE: usize = 0;
@@ -62,7 +62,6 @@ fn is_smaller_than(p1: Pancake, p2: Pancake) -> bool {
     }
 }
 
-
 fn drop_pancake(state: &mut State, state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2]) {
     let selected_pancake =  state_array[player_coord[1] as usize][(player_coord[0]) as usize];
     let mut place = 1;
@@ -82,37 +81,6 @@ fn drop_pancake(state: &mut State, state_array: &mut [[Pancake; (NUM_PANCAKES + 
     update_pancake_location(state_array, [player_coord[0] - place, player_coord[1]], *player_coord);
     update_coord(player_coord,[-1, 0]);
     *state = State::Standard;
-}
-
-fn print_welcome() {
-    println!("Welcome to Pancake Stacks!");
-    println!("Your task is to take that big stack of pancakes on the left plate and move them to the plate on the far right.");
-    println!("In doing so, however, you need to follow these rules:");
-    println!("   1) You can move only one pancake at a time.");
-    println!("   2) A pancake can never rest on another pancake smaller than itself.");
-    println!();
-    println!("To play, use the arrow keys to move and ENTER to pick up a pancake.");
-    println!("To exit, press ESC.");
-    println!("To start, press ENTER.");
-}
-
-fn print_exit() {
-    println!();
-    println!("[Exiting...]");
-}
-
-fn draw_selected() {
-    print!("->")
-}
-
-fn draw_deselected() {
-    print!("  ")
-}
-
-fn print_screen(state_array: [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: [i8; 2]) {
-    print_state(state_array, player_coord);
-    draw_background();
-    clear_screen();
 }
 
 fn is_at_pancake(state_array: [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: [i8; 2]) -> bool {
@@ -276,65 +244,6 @@ fn update_coord(player_coord: &mut [i8; 2], new_coord: [i8; 2]) -> bool {
     true
 }
 
-fn clear_screen() {
-    print!("{}[2J", 27 as char);
-}
-
-fn print_state(state: [[Pancake; 4]; 3], player_coord: [i8; 2]) {
-    for i in (0..(NUM_PANCAKES + 1)).rev() {
-        for j in 0..NUM_PLATES {
-            if player_coord[0] == i && player_coord[1] == j {
-                draw_selected();
-            } else {
-                draw_deselected();
-            }
-            match state[j as usize][i as usize] {
-                Pancake::Lg => print!("{}", Pancake::Lg),
-                Pancake::M => print!("{}", Pancake::M),
-                Pancake::Sm => print!("{}", Pancake::Sm),
-                Pancake::None => print!("{}", Pancake::None),
-
-            }
-        }
-        println!();
-    }
-}
-
-fn draw_background() {
-    draw_plates();
-    println!();
-    println!();
-    print!("|");
-    print!("{}", tablecloth());
-    print!("|");
-    println!();
-}
-
-fn draw_plates() {
-    let mut plate_area: [char; WIDTH_OF_SECTION] = [' '; WIDTH_OF_SECTION];
-    let plate = plate();
-    let letters: Vec<char> = plate.chars().collect();
-    let start = plate_area.len() / 2  - (plate.len() / 2);
-    for i in 0..plate.len() {
-        plate_area[start + i] = letters[i];
-    }
-    for _i in 0..NUM_PLATES {
-        print!("{}", String::from_iter(plate_area));
-    }
-}
-
-fn plate() -> String {
-    "\\____________/".to_string()
-}
-
-fn tablecloth() -> String {
-    let mut tablecloth: String = "".to_string();
-    for _i in 0..(WIDTH_OF_SECTION as i8 * NUM_PLATES / 3) {
-        tablecloth.push_str("▄▀ ")
-    }
-    tablecloth
-}
-
 fn main() {
     let _cleanup = Cleanup;
     terminal::enable_raw_mode().expect("Could not turn on Raw mode");
@@ -345,7 +254,7 @@ fn main() {
         if let Event::Key(event) = event::read().expect("Failed to read line") {
             match state {
                 State::Menu => {
-                    print_welcome();
+                    view::print_welcome();
                     match event {
                         KeyEvent {
                             code: KeyCode::Esc,
@@ -353,7 +262,7 @@ fn main() {
                             kind: KeyEventKind::Press,
                             state: KeyEventState::NONE
                         } => {
-                            print_exit();
+                            view::print_exit();
                             break;
                         },
                         KeyEvent {
@@ -367,14 +276,14 @@ fn main() {
                         },
                         _ => {}
                     }
-                    clear_screen();
+                    view::clear_screen();
                 }
                 State::Standard => {
                     if event.code == KeyCode::Esc {
                         state = State::Menu;
                     } else {
                         process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                        print_screen(state_array, player_coord);
+                        view::print_screen(state_array, player_coord);
                     }
                 }, 
                 State::Select => {
@@ -382,7 +291,7 @@ fn main() {
                         state = State::Menu;
                     } else {
                         process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                        print_screen(state_array, player_coord);
+                        view::print_screen(state_array, player_coord);
                     }
                 }
             };
