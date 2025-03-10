@@ -19,11 +19,11 @@ pub fn print_exit() {
     println!("[Exiting...]");
 }
 
-pub fn draw_selected() {
+fn draw_selected() {
     print!("->")
 }
 
-pub fn draw_deselected() {
+fn draw_deselected() {
     print!("  ")
 }
 
@@ -37,7 +37,7 @@ pub fn clear_screen() {
     print!("{}[2J", 27 as char);
 }
 
-pub fn print_state(state: [[Pancake; 4]; 3], player_coord: [i8; 2]) {
+fn print_state(state: [[Pancake; 4]; 3], player_coord: [i8; 2]) {
     for i in (0..(NUM_PANCAKES + 1)).rev() {
         for j in 0..NUM_PLATES {
             if player_coord[0] == i && player_coord[1] == j {
