@@ -99,6 +99,11 @@ fn print_welcome() {
     println!("To start, press ENTER.");
 }
 
+fn print_exit() {
+    println!();
+    println!("[Exiting...]");
+}
+
 fn draw_selected() {
     print!("->")
 }
@@ -202,6 +207,14 @@ fn process_select_keypresses(event: KeyEvent, state: &mut State,
         }
 }
 
+fn initialize(state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2]) {
+    *state_array = [[Pancake::None; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize];
+    state_array[INIT_PLATE][0] = Pancake::Lg;
+    state_array[INIT_PLATE][1] = Pancake::M;
+    state_array[INIT_PLATE][2] = Pancake::Sm;
+    *player_coord = [0,0];
+}
+
 fn main() {
     // clear_screen();
     // print!("Hello!");
@@ -214,40 +227,50 @@ fn main() {
     let mut state = State::Menu;
     let mut state_array = [[Pancake::None; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize];
     let mut player_coord: [i8; 2] = [0, 0];
-    state_array[INIT_PLATE][0] = Pancake::Lg;
-    state_array[INIT_PLATE][1] = Pancake::M;
-    state_array[INIT_PLATE][2] = Pancake::Sm;
     loop {
         if let Event::Key(event) = event::read().expect("Failed to read line") {
-            if event.code == KeyCode::Esc {
-                println!("\n[Exiting...]");
-                break;
-            }
             match state {
                 State::Menu => {
                     print_welcome();
                     match event {
+                        KeyEvent {
+                            code: KeyCode::Esc,
+                            modifiers: event::KeyModifiers::NONE,
+                            kind: KeyEventKind::Press,
+                            state: KeyEventState::NONE
+                        } => {
+                            print_exit();
+                            break;
+                        },
                         KeyEvent {
                             code: KeyCode::Enter,
                             modifiers: event::KeyModifiers::NONE,
                             kind: KeyEventKind::Press,
                             state: KeyEventState::NONE
                         } => {
+                            initialize(&mut state_array, &mut player_coord);
                             state = State::Standard;
                         },
                         _ => {}
                     }
                 }
                 State::Standard => {
-                    process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                    print_state(state_array, player_coord);
-                    draw_background();
+                    if event.code == KeyCode::Esc {
+                        state = State::Menu;
+                    } else {
+                        process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
+                        print_state(state_array, player_coord);
+                        draw_background();
+                    }
                 }, 
                 State::Select => {
-                    process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                    print_state(state_array, player_coord);
-                    draw_background();
-
+                    if event.code == KeyCode::Esc {
+                        state = State::Menu;
+                    } else {
+                        process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
+                        print_state(state_array, player_coord);
+                        draw_background();
+                    }
                 }
             };
             // clear_screen();
