@@ -1,6 +1,3 @@
-use std::{io, thread, time};
-use std::io::Write;
-use std::io::prelude::*;
 use std::fmt;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState}; 
 use crossterm::{event, terminal};
@@ -259,6 +256,7 @@ fn main() {
                         },
                         _ => {}
                     }
+                    clear_screen();
                 }
                 State::Standard => {
                     if event.code == KeyCode::Esc {
