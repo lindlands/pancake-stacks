@@ -161,8 +161,7 @@ fn process_standard_keypresses(event: KeyEvent, state: &mut State,
                 kind: KeyEventKind::Press,
                 state: KeyEventState::NONE
             } => {
-                if is_at_pancake(*state_array, *player_coord) {
-                    select(state_array, player_coord);
+                if is_at_pancake(*state_array, *player_coord) && select(state_array, player_coord){
                     *state = State::Select; 
                 }
             },
@@ -279,17 +278,20 @@ fn main() {
     }
 }
 
-fn select(state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2]) {
+fn select(state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2]) -> bool{
     match state_array[player_coord[1] as usize][player_coord[0] as usize] {
-        Pancake::None => (),
+        Pancake::None => false,
         pancake => {
             if player_coord[0] + 1 > NUM_PLATES {
-                return;
+                return false;
             }
             if is_smaller_than(pancake, state_array[(player_coord[1]) as usize][(player_coord[0] + 1) as usize]) {
                 let destination = [NUM_PANCAKES, player_coord[1]];
                 update_pancake_location(state_array, destination, *player_coord);
                 set_coord(player_coord, [NUM_PANCAKES, player_coord[1]]);
+                true
+            } else {
+                false
             }
         }
     }
