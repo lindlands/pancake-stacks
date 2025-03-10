@@ -20,6 +20,7 @@ impl Drop for Cleanup {
 
 #[derive(Debug)]
 enum State {
+    Menu,
     Standard,
     Select,
 }
@@ -74,7 +75,6 @@ fn drop_pancake(state: &mut State, state_array: &mut [[Pancake; (NUM_PANCAKES + 
             p => {
                 if is_smaller_than(selected_pancake, p) {
                     place = i - 1;
-                    println!("place {}", place);
                     break;
                 } else {
                     return;
@@ -82,10 +82,21 @@ fn drop_pancake(state: &mut State, state_array: &mut [[Pancake; (NUM_PANCAKES + 
             },
         }
     }
-    println!("place2 {}", place);
     update_pancake_location(state_array, [player_coord[0] - place, player_coord[1]], *player_coord);
     update_coord(player_coord,[-1, 0]);
     *state = State::Standard;
+}
+
+fn print_welcome() {
+    println!("Welcome to Pancake Stacks!");
+    println!("Your task is to take that big stack of pancakes on the left plate and move them to the plate on the far right.");
+    println!("In doing so, however, you need to follow these rules:");
+    println!("   1) You can move only one pancake at a time.");
+    println!("   2) A pancake can never rest on another pancake smaller than itself.");
+    println!();
+    println!("To play, use the arrow keys to move and ENTER to pick up a pancake.");
+    println!("To exit, press ESC.");
+    println!("To start, press ENTER.");
 }
 
 fn draw_selected() {
@@ -200,15 +211,12 @@ fn main() {
     // thread::sleep(time::Duration::from_millis(2000));
     let _cleanup = Cleanup;
     terminal::enable_raw_mode().expect("Could not turn on Raw mode");
-    let mut state = State::Standard;
+    let mut state = State::Menu;
     let mut state_array = [[Pancake::None; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize];
     let mut player_coord: [i8; 2] = [0, 0];
     state_array[INIT_PLATE][0] = Pancake::Lg;
     state_array[INIT_PLATE][1] = Pancake::M;
     state_array[INIT_PLATE][2] = Pancake::Sm;
-    println!("{:?}", state);
-    print_state(state_array, player_coord);
-    draw_background();
     loop {
         if let Event::Key(event) = event::read().expect("Failed to read line") {
             if event.code == KeyCode::Esc {
@@ -216,16 +224,32 @@ fn main() {
                 break;
             }
             match state {
+                State::Menu => {
+                    print_welcome();
+                    match event {
+                        KeyEvent {
+                            code: KeyCode::Enter,
+                            modifiers: event::KeyModifiers::NONE,
+                            kind: KeyEventKind::Press,
+                            state: KeyEventState::NONE
+                        } => {
+                            state = State::Standard;
+                        },
+                        _ => {}
+                    }
+                }
                 State::Standard => {
                     process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
+                    print_state(state_array, player_coord);
+                    draw_background();
                 }, 
                 State::Select => {
                     process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
+                    print_state(state_array, player_coord);
+                    draw_background();
 
                 }
             };
-            print_state(state_array, player_coord);
-            draw_background();     
             // clear_screen();
         }
     }
@@ -282,7 +306,6 @@ fn update_coord(player_coord: &mut [i8; 2], new_coord: [i8; 2]) -> bool {
     if temp[1] < 0 || temp[1] >= NUM_PLATES {
         return false;
     }
-    println!("{}", temp[0]);
     player_coord[0] = temp[0];
     player_coord[1] = temp[1];
     true
