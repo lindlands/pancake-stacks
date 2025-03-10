@@ -112,6 +112,12 @@ fn draw_deselected() {
     print!("  ")
 }
 
+fn print_screen(state_array: [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: [i8; 2]) {
+    print_state(state_array, player_coord);
+    draw_background();
+    clear_screen();
+}
+
 fn is_at_pancake(state_array: [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: [i8; 2]) -> bool {
     state_array[player_coord[1] as usize][(player_coord[0]) as usize] != Pancake::None
 }
@@ -259,8 +265,7 @@ fn main() {
                         state = State::Menu;
                     } else {
                         process_standard_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                        print_state(state_array, player_coord);
-                        draw_background();
+                        print_screen(state_array, player_coord);
                     }
                 }, 
                 State::Select => {
@@ -268,12 +273,10 @@ fn main() {
                         state = State::Menu;
                     } else {
                         process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
-                        print_state(state_array, player_coord);
-                        draw_background();
+                        print_screen(state_array, player_coord);
                     }
                 }
             };
-            // clear_screen();
         }
     }
 }
