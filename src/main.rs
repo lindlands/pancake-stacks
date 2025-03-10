@@ -336,12 +336,6 @@ fn tablecloth() -> String {
 }
 
 fn main() {
-    // clear_screen();
-    // print!("Hello!");
-    // if let Err(error) = io::stdout().flush() {
-    //     panic!("{}", error);
-    // }
-    // thread::sleep(time::Duration::from_millis(2000));
     let _cleanup = Cleanup;
     terminal::enable_raw_mode().expect("Could not turn on Raw mode");
     let mut state = State::Menu;
