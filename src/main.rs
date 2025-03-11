@@ -20,6 +20,7 @@ enum State {
     Menu,
     Standard,
     Select,
+    Complete,
 }
 
 #[derive(Copy)]
@@ -60,6 +61,14 @@ fn is_smaller_than(p1: Pancake, p2: Pancake) -> bool {
         },
         Pancake::None => true,
     }
+}
+
+fn is_solved(state_array: [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize]) -> bool {
+    let mut final_state = [[Pancake::None; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize];
+    final_state[(NUM_PLATES - 1) as usize][0] = Pancake::Lg;
+    final_state[(NUM_PLATES - 1) as usize][1] = Pancake::M;
+    final_state[(NUM_PLATES - 1) as usize][2] = Pancake::Sm;
+    state_array == final_state
 }
 
 fn drop_pancake(state: &mut State, state_array: &mut [[Pancake; (NUM_PANCAKES + 1) as usize]; NUM_PLATES as usize], player_coord: &mut [i8; 2]) {
@@ -292,9 +301,26 @@ fn main() {
                     } else {
                         process_select_keypresses(event, &mut state, &mut state_array, &mut player_coord);
                         view::print_screen(state_array, player_coord);
+                        if is_solved(state_array) {
+                            state = State::Complete;
+                        }
+                    }
+                },
+                State::Complete => {
+                    view::print_complete();
+                    match event {
+                        KeyEvent {
+                            code: KeyCode::Enter,
+                            modifiers: event::KeyModifiers::NONE,
+                            kind: KeyEventKind::Press,
+                            state: KeyEventState::NONE
+                        } => {
+                            state = State::Menu;
+                        },
+                        _ => {}
                     }
                 }
-            };
+            }
         }
     }
 }

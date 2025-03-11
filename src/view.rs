@@ -3,6 +3,7 @@ use crate::{Pancake, NUM_PANCAKES, NUM_PLATES};
 const WIDTH_OF_SECTION: usize = 20;
 
 pub fn print_welcome() {
+	clear_screen();
     println!("Welcome to Pancake Stacks!");
     println!("Your task is to take that big stack of pancakes on the left plate and move them to the plate on the far right.");
     println!("In doing so, however, you need to follow these rules:");
@@ -17,6 +18,15 @@ pub fn print_welcome() {
 pub fn print_exit() {
     println!();
     println!("[Exiting...]");
+}
+
+pub fn print_complete() {
+	clear_screen();
+	println!("Delicious!");
+	println!("The solution can be achieved in as few as seven moves. How many moves did it take you?");
+	println!("This puzzle is actually a variant of the famous Tower of Hanoi puzzle, a brainteaser invented by a French mathematician over 100 years ago.");
+	println!();
+	println!("Press ENTER to exit.");
 }
 
 fn draw_selected() {
